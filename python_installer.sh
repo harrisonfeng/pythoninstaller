@@ -30,6 +30,9 @@
 PYTHON_INSTALLER_VERSION=0.0.1
 
 NO_ARGS=5
+FILE_NOT_EXISTS=505
+ERROR_DOWNLOAD=404
+
 
 LATEST_PYTHON_VERSIONS_STABLE='2.7.5 3.2.5 3.3.2'
 URL_PREFIX='http://www.python.org/ftp/python'
@@ -37,7 +40,7 @@ URL_PREFIX='http://www.python.org/ftp/python'
 PYTHON_VERSION=$1
 WORKSPACE=${PWD}
 PYTHON_SRC_DIR=Python-${PYTHON_VERSION}
-PYTHON_SRC_PKG_NAME=Python-${PYTHON_VERSION}.tar.bz2
+PYTHON_SRC_PKG_NAME=Python-${PYTHON_VERSION}.tgz
 TARGET_INSTALL_DIR=/opt/python${PYTHON_VERSION}
 PYTHON_BIN_NAME=`echo "python${PYTHON_VERSION}" | cut -d\. -f1-2`
 PYTHON_BIN_PATH=${TARGET_INSTALL_DIR}/bin/${PYTHON_BIN_NAME}
@@ -67,7 +70,10 @@ echo "Python Startup Path:      /usr/local/bin/python${PYTHON_VERSION}"
 echo "*************************************************************************"
 
 installDeps() {
+   echo
+   echo "=================================================================="
    echo "Start to install dependencies, make sure you have root permission."
+   echo "=================================================================="
    echo
    sudo apt-get install -y build-essential libncursesw5-dev libreadline6-dev \
                            libssl-dev libgdbm-dev libc6-dev libsqlite3-dev \
@@ -76,11 +82,19 @@ installDeps() {
                        
 getPySrc() {
    echo "Start to download python source now..."
+   echo
    wget ${PYTHON_SRC_PKG_URL}
-   tar jxvf ${PYTHON_SRC_PKG_NAME}
+   if [ "$?" -ne "0" ]; then
+      exit ${ERROR_DOWNLOAD}
+   fi
 }
 
 buildPy() {
+   if [ -f ${PYTHON_SRC_PKG_NAME} ]; then
+      tar xvf ${PYTHON_SRC_PKG_NAME}
+   else
+      exit ${FILE_NOT_EXISTS}
+   fi
    cd ${PYTHON_SRC_DIR}
    ./configure --prefix=${TARGET_INSTALL_DIR}
    echo
@@ -99,19 +113,24 @@ cleanBuildStuff() {
    sudo rm -rf ${PYTHON_SRC_PKG_NAME} 
 }
 
+# Start installation process
 installDeps
 if [ $? -eq "0" ]; then
    getPySrc
    buildPy
-   sudo ln -s ${PYTHON_BIN_PATH} /usr/local/bin/python${PYTHON_VERSION} 
-   echo "==========================================================="
-   echo "Create symblink /usr/local/bin/python${PYTHON_VERSION}"
-   echo "==========================================================="
+   if [ -f ${PYTHON_BIN_PATH} ]; then
+      sudo ln -s ${PYTHON_BIN_PATH} /usr/local/bin/python${PYTHON_VERSION}
+      echo "==========================================================="
+      echo "Create symblink /usr/local/bin/python${PYTHON_VERSION}"
+      echo "==========================================================="
+      echo "*********************** Congrats! *********************************"
+      echo "Your python interpreter ${PYTHON_VERSION} is installed successfully"
+      echo "*******************************************************************"
+   else
+      echo "${PYTHON_BIN_PATH} doesn't exist."
+   fi
    cleanBuildStuff
    echo 
-   echo "*********************** Congrats! *********************************"
-   echo "Your python interpreter ${PYTHON_VERSION} is installed successfully"
-   echo "*******************************************************************"
    echo
 else
    echo "Failed to install dependencies, please re-run script to install."
