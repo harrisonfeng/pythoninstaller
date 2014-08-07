@@ -75,9 +75,13 @@ installDeps() {
    echo "Start to install dependencies, make sure you have root permission."
    echo "=================================================================="
    echo
-   sudo apt-get install -y build-essential libncursesw5-dev libreadline6-dev \
-                           libssl-dev libgdbm-dev libc6-dev libsqlite3-dev \
-                           tk-dev bzip2 libbz2-dev
+   apt-get --version
+   if [ "$?" -ne "0" ]; then
+      INST_CMD="yum install -y openssl-devel bzip2-devel expat-devel gdbm-devel readline-devel sqlite-devel"
+   else
+      INST_CMD="apt-get install -y build-essential libncursesw5-dev libreadline6-dev libssl-dev libgdbm-dev libc6-dev libsqlite3-dev tk-dev bzip2 libbz2-dev"
+   fi
+   sudo ${INST_CMD}
 }
                        
 getPySrc() {
