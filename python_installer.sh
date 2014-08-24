@@ -27,7 +27,7 @@
 # @author Harrison Feng <feng.harrison@gmail.com>
 # @file python_installer.sh
 
-PYTHON_INSTALLER_VERSION=0.0.1
+PYTHON_INSTALLER_VERSION=0.1.1
 
 NO_ARGS=5
 FILE_NOT_EXISTS=505
