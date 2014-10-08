@@ -75,9 +75,12 @@ function install_deps() {
    echo "=================================================================="
    echo
    if [ -f /usr/bin/yum ]; then
-      INST_CMD="yum groupinstall -y 'Development tools'"
+      INST_CMD="yum -y install \
+          openssl-devel bzip2-devel \
+          expat-devel gdbm-devel \
+          readline-devel sqlite-devel"
    elif [ -f /usr/bin/apt-get ]; then
-      INST_CMD="apt-get install -y \
+      INST_CMD="apt-get -y install \
           build-essential libncursesw5-dev \
           libreadline6-dev libssl-dev \
           libgdbm-dev libc6-dev \
