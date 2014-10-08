@@ -34,10 +34,10 @@ VERSION=1.0.0
 
 PYTHON_VERSION=$1
 # dirs for use-installed python
-PY_BIN_DIR=/opt/python${PY_VER}/bin
+PYTHON_BIN_DIR=/opt/python${PY_VER}/bin
 # paths for binaries
-PYTHON_BIN=${PY_BIN_DIR}/python
-PIP_BIN=${PY_BIN_DIR}/pip
+PYTHON_BIN=${PYTHON_BIN_DIR}/python
+PIP_BIN=${PYTHON_BIN_DIR}/pip
 VIRTUALENV_BIN=${PY_BIN_DIR}/virtualenv
 
 function usage {
@@ -49,13 +49,12 @@ function usage {
     echo
     }
 
-if [ -z ${PY_VER} ]; then
+if [ -z ${PYTHON_VERSION} ]; then
     echo 
     echo "python_version is missing,\ 
     install pip for default python installation"
     echo
-    PY_BIN=`which python`
-    PIP_BIN=`which pip`
+    PYTHON_BIN=`which python`
 fi 
 #
 # Dist identification functions
@@ -113,9 +112,23 @@ function setup_pip {
     fi
 
     # install pip
-    ${PY_BIN} get-pip.py 
+    ${PYTHON_BIN} get-pip.py 
 }
+
+
+if [ -z ${PYTHON_VERSION} ]; then
+    echo
+    echo "python_version is missing,\
+    install pip for default python installation"
+    echo
+    PYTHON_BIN=`which python`
+fi
+
 setup_pip
+
+if [ -z ${PYTHON_VERSION} ]; then
+    PIP_BIN=`which pip`
+fi
 
 echo "Upgrading setuptools..."
 ${PIP_BIN} install --upgrade setuptools
