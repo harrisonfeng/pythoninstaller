@@ -118,7 +118,7 @@ function setup_pip {
 setup_pip
 
 echo "Upgrading setuptools..."
-${PIP_BIN} install -U setuptools
+${PIP_BIN} install --upgrade setuptools
 
 echo "Installing virtualenv ..."
-${PIP_BIN} install -U virtualenv
+${PIP_BIN} install --upgrade virtualenv
