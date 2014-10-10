@@ -34,11 +34,11 @@ VERSION=1.0.0
 
 PYTHON_VERSION=$1
 # dirs for use-installed python
-PYTHON_BIN_DIR=/opt/python${PY_VER}/bin
+PYTHON_BIN_DIR=/opt/python${PYTHON_VERSION}/bin
 # paths for binaries
 PYTHON_BIN=${PYTHON_BIN_DIR}/python
 PIP_BIN=${PYTHON_BIN_DIR}/pip
-VIRTUALENV_BIN=${PY_BIN_DIR}/virtualenv
+VIRTUALENV_BIN=${PYTHON_BIN_DIR}/virtualenv
 
 function usage {
     echo 
@@ -135,3 +135,5 @@ ${PIP_BIN} install --upgrade setuptools
 
 echo "Installing virtualenv ..."
 ${PIP_BIN} install --upgrade virtualenv
+
+rm -rf get-pip.py
