@@ -27,14 +27,13 @@
 # @author Harrison Feng <feng.harrison@gmail.com>
 # @file python_installer.sh
 
-PYTHON_INSTALLER_VERSION=0.1.1
+PYTHON_INSTALLER_VERSION=0.1.2
 
 NO_ARGS=5
 FILE_NOT_EXISTS=505
 ERROR_DOWNLOAD=404
 
-
-LATEST_PYTHON_VERSIONS_STABLE='2.7.5 3.2.5 3.3.2 3.3.3 3.3.4'
+LATEST_PYTHON_VERSIONS_STABLE='2.6.9 2.7.8 3.4.1'
 URL_PREFIX='http://www.python.org/ftp/python'
 
 PYTHON_VERSION=$1
@@ -46,12 +45,12 @@ PYTHON_BIN_NAME=`echo "python${PYTHON_VERSION}" | cut -d\. -f1-2`
 PYTHON_BIN_PATH=${TARGET_INSTALL_DIR}/bin/${PYTHON_BIN_NAME}
 PYTHON_SRC_PKG_URL=${URL_PREFIX}/${PYTHON_VERSION}/${PYTHON_SRC_PKG_NAME}
 
-usage() {
+function usage() {
    echo
    echo "Usage:                          " 
    echo "./`basename $0` <python-version>"
    echo "For example:                    " 
-   echo "./`basename $0` 3.3.2           "
+   echo "./`basename $0` 3.4.1           "
    echo 
 }
 
@@ -69,31 +68,36 @@ echo "Python Bin Path:          ${PYTHON_BIN_PATH}"
 echo "Python Startup Path:      /usr/local/bin/python${PYTHON_VERSION}"
 echo "*************************************************************************"
 
-installDeps() {
+function install_deps() {
    echo
    echo "=================================================================="
    echo "Start to install dependencies, make sure you have root permission."
    echo "=================================================================="
    echo
-   apt-get --version
-   if [ "$?" -ne "0" ]; then
-      INST_CMD="yum install -y openssl-devel bzip2-devel expat-devel gdbm-devel readline-devel sqlite-devel"
-   else
-      INST_CMD="apt-get install -y build-essential libncursesw5-dev libreadline6-dev libssl-dev libgdbm-dev libc6-dev libsqlite3-dev tk-dev bzip2 libbz2-dev"
+   if [ -f /usr/bin/yum ]; then
+      INST_CMD="yum -y install \
+          openssl-devel bzip2-devel \
+          expat-devel gdbm-devel \
+          readline-devel sqlite-devel"
+   elif [ -f /usr/bin/apt-get ]; then
+      INST_CMD="apt-get -y install \
+          build-essential libncursesw5-dev \
+          libreadline6-dev libssl-dev \
+          libgdbm-dev libc6-dev \
+          libsqlite3-dev tk-dev bzip2 libbz2-dev"
    fi
    sudo ${INST_CMD}
 }
-                       
-getPySrc() {
+
+function get_python_src() {
    echo "Start to download python source now..."
-   echo
    wget ${PYTHON_SRC_PKG_URL}
    if [ "$?" -ne "0" ]; then
       exit ${ERROR_DOWNLOAD}
    fi
 }
 
-buildPy() {
+function build_python() {
    if [ -f ${PYTHON_SRC_PKG_NAME} ]; then
       tar xvf ${PYTHON_SRC_PKG_NAME}
    else
@@ -111,19 +115,19 @@ buildPy() {
    echo
 }
 
-cleanBuildStuff() {
+function clean_build_artifacts() {
    cd ${WORKSPACE}
    sudo rm -rf ${PYTHON_SRC_DIR}
    sudo rm -rf ${PYTHON_SRC_PKG_NAME} 
 }
 
 # Start installation process
-installDeps
+install_deps
 if [ $? -eq "0" ]; then
-   getPySrc
-   buildPy
+   get_python_src
+   build_python
    if [ -f ${PYTHON_BIN_PATH} ]; then
-      sudo ln -s ${PYTHON_BIN_PATH} /usr/local/bin/python${PYTHON_VERSION}
+      sudo ln -s -f ${PYTHON_BIN_PATH} /usr/local/bin/python${PYTHON_VERSION}
       echo "==========================================================="
       echo "Create symblink /usr/local/bin/python${PYTHON_VERSION}"
       echo "==========================================================="
@@ -133,7 +137,7 @@ if [ $? -eq "0" ]; then
    else
       echo "${PYTHON_BIN_PATH} doesn't exist."
    fi
-   cleanBuildStuff
+   clean_build_artifacts
    echo 
    echo
 else
