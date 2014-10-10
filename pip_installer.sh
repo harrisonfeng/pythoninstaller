@@ -30,7 +30,7 @@
 #    ./pip_installer.sh
 # 
 
-VERSION=1.0.0
+VERSION=0.1.2
 
 PYTHON_VERSION=$1
 # dirs for use-installed python
@@ -112,7 +112,7 @@ function setup_pip {
     fi
 
     # install pip
-    ${PYTHON_BIN} get-pip.py 
+    sudo ${PYTHON_BIN} get-pip.py
 }
 
 
@@ -131,9 +131,9 @@ if [ -z ${PYTHON_VERSION} ]; then
 fi
 
 echo "Upgrading setuptools..."
-${PIP_BIN} install --upgrade setuptools
+sudo ${PIP_BIN} install --upgrade setuptools
 
 echo "Installing virtualenv ..."
-${PIP_BIN} install --upgrade virtualenv
+sudo ${PIP_BIN} install --upgrade virtualenv
 
 rm -rf get-pip.py
