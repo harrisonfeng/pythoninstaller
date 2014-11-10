@@ -37,6 +37,7 @@ LATEST_PYTHON_VERSIONS_STABLE='2.6.9 2.7.8 3.4.1'
 URL_PREFIX='http://www.python.org/ftp/python'
 
 PYTHON_VERSION=$1
+PYTHON_VERSION_SHORT=`echo ${PYTHON_VERSION} | cut -d "." -f -2`
 WORKSPACE=${PWD}
 PYTHON_SRC_DIR=Python-${PYTHON_VERSION}
 PYTHON_SRC_PKG_NAME=Python-${PYTHON_VERSION}.tgz
@@ -128,6 +129,7 @@ if [ $? -eq "0" ]; then
    build_python
    if [ -f ${PYTHON_BIN_PATH} ]; then
       sudo ln -s -f ${PYTHON_BIN_PATH} /usr/local/bin/python${PYTHON_VERSION}
+      sudo ln -s -f ${PYTHON_BIN_PATH} /usr/local/bin/python${PYTHON_VERSION_SHORT}
       echo "==========================================================="
       echo "Create symblink /usr/local/bin/python${PYTHON_VERSION}"
       echo "==========================================================="
