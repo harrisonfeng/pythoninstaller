@@ -33,25 +33,31 @@ NO_ARGS=5
 FILE_NOT_EXISTS=505
 ERROR_DOWNLOAD=404
 
-LATEST_PYTHON_VERSIONS_STABLE='2.6.9 2.7.8 3.4.1'
+LATEST_PYTHON_VERSIONS_STABLE='2.6.9 2.7.9 3.4.2'
 URL_PREFIX='http://www.python.org/ftp/python'
 
 PYTHON_VERSION=$1
+INSTALL_DIR_PREFIX=$2
+
+if [ -z ${INSTALL_DIR_PREFIX} ]; then
+    INSTALL_DIR_PREFIX=/opt
+fi
+
 PYTHON_VERSION_SHORT=`echo ${PYTHON_VERSION} | cut -d "." -f -2`
 WORKSPACE=${PWD}
 PYTHON_SRC_DIR=Python-${PYTHON_VERSION}
 PYTHON_SRC_PKG_NAME=Python-${PYTHON_VERSION}.tgz
-TARGET_INSTALL_DIR=/opt/python${PYTHON_VERSION}
+TARGET_INSTALL_DIR=${INSTALL_DIR_PREFIX}/python${PYTHON_VERSION}
 PYTHON_BIN_NAME=`echo "python${PYTHON_VERSION}" | cut -d\. -f1-2`
 PYTHON_BIN_PATH=${TARGET_INSTALL_DIR}/bin/${PYTHON_BIN_NAME}
 PYTHON_SRC_PKG_URL=${URL_PREFIX}/${PYTHON_VERSION}/${PYTHON_SRC_PKG_NAME}
 
 function usage() {
    echo
-   echo "Usage:                          " 
-   echo "./`basename $0` <python-version>"
-   echo "For example:                    " 
-   echo "./`basename $0` 3.4.1           "
+   echo "Usage:                                               "
+   echo "./`basename $0` <python-version> <install-dir-prefix>"
+   echo "For example:                                         "
+   echo "./`basename $0` 3.4.1 /opt/lib                       "
    echo 
 }
 
