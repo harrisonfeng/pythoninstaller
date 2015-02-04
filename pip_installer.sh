@@ -33,8 +33,9 @@
 VERSION=0.1.2
 
 PYTHON_VERSION=$1
+INSTALL_DIR_PREFIX=$2
 # dirs for use-installed python
-PYTHON_BIN_DIR=/opt/python${PYTHON_VERSION}/bin
+PYTHON_BIN_DIR=${INSTALL_DIR_PREFIX}/python${PYTHON_VERSION}/bin
 # paths for binaries
 PYTHON_BIN=${PYTHON_BIN_DIR}/python
 PIP_BIN=${PYTHON_BIN_DIR}/pip
