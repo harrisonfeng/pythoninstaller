@@ -27,7 +27,7 @@
 # @author Harrison Feng <feng.harrison@gmail.com>
 # @file python_installer.sh
 
-PYTHON_INSTALLER_VERSION=0.1.2
+PYTHON_INSTALLER_VERSION=0.1.3
 
 NO_ARGS=5
 FILE_NOT_EXISTS=505
@@ -38,6 +38,8 @@ URL_PREFIX='http://www.python.org/ftp/python'
 
 PYTHON_VERSION=$1
 INSTALL_DIR_PREFIX=$2
+
+PY_VER_PRE=`echo ${PYTHON_VERSION} | cut -d. -f1`
 
 if [ -z ${INSTALL_DIR_PREFIX} ]; then
     INSTALL_DIR_PREFIX=/opt
@@ -152,4 +154,8 @@ if [ $? -eq "0" ]; then
 else
    echo "Failed to install dependencies, please re-run script to install."
    exit 1
+fi
+
+if [ "${PY_VER_PRE}" -ne 3 ]; then
+    ./pip_installer.sh ${PYTHON_VERSION} ${INSTALL_DIR_PREFIX}
 fi

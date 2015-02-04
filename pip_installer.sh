@@ -30,7 +30,7 @@
 #    ./pip_installer.sh
 # 
 
-VERSION=0.1.2
+VERSION=0.1.3
 
 PYTHON_VERSION=$1
 INSTALL_DIR_PREFIX=$2
