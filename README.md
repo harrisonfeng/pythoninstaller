@@ -27,16 +27,17 @@ BASH, wget utility. Of course, you must have root permission.
 
 Usage
 =====
+```
+./python_installer.sh PYTHON_VERSION PREFIX
 
-./python_installer.sh PYTHON_VERSION
-
-./pip_installer.sh [PYTHON_VERSION] 
-
+./pip_installer.sh [PYTHON_VERSION] PREFIX
+```
 E.g.
 
-./python_installer.sh 2.7.8
+```
+./python_installer.sh 2.7.8 /opt/python
 
-./pip_installer.sh 2.7.8
-
+./pip_installer.sh 2.7.8 /opt/python
+```
 
 
