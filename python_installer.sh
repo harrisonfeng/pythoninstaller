@@ -27,30 +27,39 @@
 # @author Harrison Feng <feng.harrison@gmail.com>
 # @file python_installer.sh
 
-PYTHON_INSTALLER_VERSION=0.1.2
+PYTHON_INSTALLER_VERSION=0.1.3
 
 NO_ARGS=5
 FILE_NOT_EXISTS=505
 ERROR_DOWNLOAD=404
 
-LATEST_PYTHON_VERSIONS_STABLE='2.6.9 2.7.8 3.4.1'
+LATEST_PYTHON_VERSIONS_STABLE='2.6.9 2.7.9 3.4.2'
 URL_PREFIX='http://www.python.org/ftp/python'
 
 PYTHON_VERSION=$1
+INSTALL_DIR_PREFIX=$2
+
+PY_VER_PRE=`echo ${PYTHON_VERSION} | cut -d. -f1`
+
+if [ -z ${INSTALL_DIR_PREFIX} ]; then
+    INSTALL_DIR_PREFIX=/opt
+fi
+
+PYTHON_VERSION_SHORT=`echo ${PYTHON_VERSION} | cut -d "." -f -2`
 WORKSPACE=${PWD}
 PYTHON_SRC_DIR=Python-${PYTHON_VERSION}
 PYTHON_SRC_PKG_NAME=Python-${PYTHON_VERSION}.tgz
-TARGET_INSTALL_DIR=/opt/python${PYTHON_VERSION}
+TARGET_INSTALL_DIR=${INSTALL_DIR_PREFIX}/python${PYTHON_VERSION}
 PYTHON_BIN_NAME=`echo "python${PYTHON_VERSION}" | cut -d\. -f1-2`
 PYTHON_BIN_PATH=${TARGET_INSTALL_DIR}/bin/${PYTHON_BIN_NAME}
 PYTHON_SRC_PKG_URL=${URL_PREFIX}/${PYTHON_VERSION}/${PYTHON_SRC_PKG_NAME}
 
 function usage() {
    echo
-   echo "Usage:                          " 
-   echo "./`basename $0` <python-version>"
-   echo "For example:                    " 
-   echo "./`basename $0` 3.4.1           "
+   echo "Usage:                                               "
+   echo "./`basename $0` <python-version> <install-dir-prefix>"
+   echo "For example:                                         "
+   echo "./`basename $0` 3.4.1 /opt/lib                       "
    echo 
 }
 
@@ -75,16 +84,17 @@ function install_deps() {
    echo "=================================================================="
    echo
    if [ -f /usr/bin/yum ]; then
-      INST_CMD="yum -y install \
-          openssl-devel bzip2-devel \
-          expat-devel gdbm-devel \
-          readline-devel sqlite-devel"
+       yum -y groupinstall "Development tools"
+       INST_CMD="yum -y install \
+           openssl-devel bzip2-devel \
+           expat-devel gdbm-devel \
+           readline-devel sqlite-devel"
    elif [ -f /usr/bin/apt-get ]; then
-      INST_CMD="apt-get -y install \
-          build-essential libncursesw5-dev \
-          libreadline6-dev libssl-dev \
-          libgdbm-dev libc6-dev \
-          libsqlite3-dev tk-dev bzip2 libbz2-dev"
+       INST_CMD="apt-get -y install \
+           build-essential libncursesw5-dev \
+           libreadline6-dev libssl-dev \
+           libgdbm-dev libc6-dev \
+           libsqlite3-dev tk-dev bzip2 libbz2-dev"
    fi
    sudo ${INST_CMD}
 }
@@ -128,6 +138,7 @@ if [ $? -eq "0" ]; then
    build_python
    if [ -f ${PYTHON_BIN_PATH} ]; then
       sudo ln -s -f ${PYTHON_BIN_PATH} /usr/local/bin/python${PYTHON_VERSION}
+      sudo ln -s -f ${PYTHON_BIN_PATH} /usr/local/bin/python${PYTHON_VERSION_SHORT}
       echo "==========================================================="
       echo "Create symblink /usr/local/bin/python${PYTHON_VERSION}"
       echo "==========================================================="
@@ -143,4 +154,8 @@ if [ $? -eq "0" ]; then
 else
    echo "Failed to install dependencies, please re-run script to install."
    exit 1
+fi
+
+if [ "${PY_VER_PRE}" -ne 3 ]; then
+    ./pip_installer.sh ${PYTHON_VERSION} ${INSTALL_DIR_PREFIX}
 fi
