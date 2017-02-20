@@ -27,104 +27,164 @@
 # @author Harrison Feng <feng.harrison@gmail.com>
 # @file python_installer.sh
 
-PYTHON_INSTALLER_VERSION=0.1.3
+PYTHON_INSTALLER_VERSION=0.1.4
 
-NO_ARGS=5
-FILE_NOT_EXISTS=505
-ERROR_DOWNLOAD=404
+# Color Definition
+TXTRESET='\e[0m'
+TXTRED='\e[0;31m'
+TXTGREEN='\e[0;32m'
+TXTBLUE='\e[0;34m'
+TXTPURPLE='\e[0;35m'
 
-LATEST_PYTHON_VERSIONS_STABLE='2.7.10 3.4.3'
-URL_PREFIX='http://www.python.org/ftp/python'
-DEFAULT_INSTALL_DIR_PREFIX=/opt
+BTXTRED='\e[1;31m'
+BTXTGREEN='\e[1;32m'
+BTXTBLUE='\e[1;34m'
 
+# Args
 PYTHON_VERSION=$1
 INSTALL_DIR_PREFIX=$2
 
-PY_VER_PRE=`echo ${PYTHON_VERSION} | cut -d. -f1`
+# Error code
+NO_ARGS=5
+ERRORS=444
+FILE_NOT_EXISTS=505
+ERROR_DOWNLOAD=404
 
-if [ -z ${INSTALL_DIR_PREFIX} ]; then
-    INSTALL_DIR_PREFIX=${DEFAULT_INSTALL_DIR_PREFIX}
-fi
+LATEST_PYTHON_VERSIONS_STABLE='2.7.13 3.6.0'
+PYTHON_SRC_URL_PREFIX='http://www.python.org/ftp/python'
+# If the user doesn't give it, we will use it.
+DEFAULT_INSTALL_DIR_PREFIX=/opt/python
+PYTHON_VERSION_MAJOR=`echo ${PYTHON_VERSION} | cut -d. -f1`
 
-PYTHON_VERSION_SHORT=`echo ${PYTHON_VERSION} | cut -d "." -f -2`
-WORKSPACE=${PWD}
-PYTHON_SRC_DIR=Python-${PYTHON_VERSION}
-PYTHON_SRC_PKG_NAME=Python-${PYTHON_VERSION}.tgz
-TARGET_INSTALL_DIR=${INSTALL_DIR_PREFIX}/python${PYTHON_VERSION}
-PYTHON_BIN_NAME=`echo "python${PYTHON_VERSION}" | cut -d\. -f1-2`
-PYTHON_BIN_PATH=${TARGET_INSTALL_DIR}/bin/${PYTHON_BIN_NAME}
-PYTHON_SRC_PKG_URL=${URL_PREFIX}/${PYTHON_VERSION}/${PYTHON_SRC_PKG_NAME}
 
 function usage() {
-   echo
-   echo "Usage:                                               "
-   echo "./`basename $0` <python-version> <install-dir-prefix>"
-   echo "For example:                                         "
-   echo "./`basename $0` 3.4.1 /opt/lib                       "
-   echo 
+   echo -e "${BTXTRED}
+**********************************************************************
+
+Usage:
+./`basename $0` <PYTHON_VERSION> [INSTALL_DIR_PREFIX]
+For example:
+./`basename $0` 3.6.0 /opt/python
+
+**********************************************************************
+${TXTRESET}\n"
 }
 
-if [ -z $1 ]; then
-   usage
-   exit ${NO_ARGS}
-fi
 
-echo
-echo "************************ Python Installer *******************************"
-echo "Python Source Package:    ${PYTHON_SRC_PKG_URL}"
-echo "Python Install Directory: ${TARGET_INSTALL_DIR}"
-echo "Python Bin Directory:     ${TARGET_INSTALL_DIR}/bin"
-echo "Python Bin Path:          ${PYTHON_BIN_PATH}"
-echo "Python Startup Path:      /usr/local/bin/python${PYTHON_VERSION}"
-echo "*************************************************************************"
+function check_parameters() {
+    if [ -z ${PYTHON_VERSION} ]; then
+        usage
+        exit ${NO_ARGS}
+    fi
+    if [ -z ${INSTALL_DIR_PREFIX} ]; then
+        INSTALL_DIR_PREFIX=${DEFAULT_INSTALL_DIR_PREFIX}
+    fi
+}
 
-function install_deps() {
-   echo
-   echo "=================================================================="
-   echo "Start to install dependencies, make sure you have root permission."
-   echo "=================================================================="
-   echo
+
+function prepare_environment() {
+    WORKSPACE=${PWD}
+    PYTHON_VERSION_SHORT=`echo ${PYTHON_VERSION} | cut -d "." -f -2`
+    PYTHON_SRC_DIR=Python-${PYTHON_VERSION}
+    PYTHON_SRC_PKG_NAME=Python-${PYTHON_VERSION}.tgz
+    TARGET_INSTALL_DIR=${INSTALL_DIR_PREFIX}/python${PYTHON_VERSION}
+    PYTHON_BIN_NAME=`echo "python${PYTHON_VERSION}" | cut -d\. -f1-2`
+    PYTHON_BIN_PATH=${TARGET_INSTALL_DIR}/bin/${PYTHON_BIN_NAME}
+    PYTHON_SRC_PKG_URL=${PYTHON_SRC_URL_PREFIX}/${PYTHON_VERSION}/${PYTHON_SRC_PKG_NAME}
+    echo -e "${BTXTGREEN}
+******************* Python Install Environment ***********************
+Python Source Package:     ${PYTHON_SRC_PKG_URL}
+Python Install Directory:  ${TARGET_INSTALL_DIR}
+Python Bin Directory:      ${TARGET_INSTALL_DIR}/bin
+Python Bin Path:           ${PYTHON_BIN_PATH}
+Python Startup Path:       /usr/local/bin/python${PYTHON_VERSION}
+******************* Python Install Environment ***********************
+${TXTRESET}\n"
+}
+
+
+function install_build_deps() {
+    echo -e "${BTXTGREEN}
+**********************************************************************
+Start to install dependencies, make sure you have root permission.
+**********************************************************************
+${TXTRESET}\n"
    if [ -f /usr/bin/yum ]; then
        yum -y groupinstall "Development tools"
-       INST_CMD="yum -y install \
-           openssl-devel bzip2-devel \
+       INSTALL_CMDLINE="yum -y install \
+           openssl*-devel bzip2-devel \
            expat-devel gdbm-devel \
-           readline-devel sqlite-devel"
+           readline-devel sqlite-devel wget"
    elif [ -f /usr/bin/apt-get ]; then
-       INST_CMD="apt-get -y install \
+       INSTALL_CMDLINE="apt-get -y install \
            build-essential libncursesw5-dev \
            libreadline6-dev libssl-dev \
            libgdbm-dev libc6-dev \
-           libsqlite3-dev tk-dev bzip2 libbz2-dev"
+           libsqlite3-dev tk-dev bzip2 libbz2-dev wget"
    fi
-   sudo ${INST_CMD}
+   sudo ${INSTALL_CMDLINE}
+   if [ "$?" -ne "0" ]; then
+       echo -e "${BTXTRED}
+       Errors happened or failed install dependencies,
+       please re-run to install it again.
+       ${TXTRESET}\n"
+       exit ${ERRORS}
+   fi
 }
 
-function get_python_src() {
-   echo "Start to download python source now..."
+
+function get_python_source_pkg() {
+   echo -e "${BTXTGREEN}Start to download python source code now...${TXTRES}\n"
    wget ${PYTHON_SRC_PKG_URL}
    if [ "$?" -ne "0" ]; then
       exit ${ERROR_DOWNLOAD}
    fi
 }
 
-function build_python() {
-   if [ -f ${PYTHON_SRC_PKG_NAME} ]; then
-      tar xvf ${PYTHON_SRC_PKG_NAME}
-   else
-      exit ${FILE_NOT_EXISTS}
-   fi
-   cd ${PYTHON_SRC_DIR}
-   ./configure --prefix=${TARGET_INSTALL_DIR}
-   echo
-   echo "=============================================="
-   echo "Start to build Python ${PYTHON_VERSION} now..."
-   echo "=============================================="
-   echo
-   make
-   sudo make install
-   echo
+
+function build_install_python() {
+    cd ${WORKSPACE}
+    if [ -f ${PYTHON_SRC_PKG_NAME} ]; then
+        tar xvf ${PYTHON_SRC_PKG_NAME}
+    else
+        echo -e "${PYTHON_SRC_PKG_NAME} is not found!"
+        exit ${FILE_NOT_EXISTS}
+    fi
+    if [ "$?" -ne "0" ]; then
+        echo -e "${BTXTRED}Errors on extracting source package ${PYTHON_SRC_PKG_NAME}${TXTRESET}\n"
+        exit 5
+    else
+        cd ${PYTHON_SRC_DIR}
+        echo -e "${BTXTGREEN}
+**********************************************************************
+Start to build and install Python ${PYTHON_VERSION} now...
+**********************************************************************
+${TXTRESET}\n"
+        ./configure --prefix=${TARGET_INSTALL_DIR}
+        make
+        sudo make install
+    fi
 }
+
+
+function post_install() {
+    if [ -f ${PYTHON_BIN_PATH} ]; then
+        echo -e "${BTXTGREEN}
+**********************************************************************
+Creating symblinks below
+
+/usr/local/bin/python${PYTHON_VERSION}
+/usr/local/bin/python${PYTHON_VERSION_SHORT}
+**********************************************************************
+${TXTRESET}\n"
+        sudo ln -s -f ${PYTHON_BIN_PATH} /usr/local/bin/python${PYTHON_VERSION}
+        sudo ln -s -f ${PYTHON_BIN_PATH} /usr/local/bin/python${PYTHON_VERSION_SHORT}
+    else
+        echo -e "${BTXTRED}${PYTHON_BIN_PATH} doesn't exist.${TXTRESET}\n"
+    fi
+
+}
+
 
 function clean_build_artifacts() {
    cd ${WORKSPACE}
@@ -132,31 +192,23 @@ function clean_build_artifacts() {
    sudo rm -rf ${PYTHON_SRC_PKG_NAME} 
 }
 
-# Start installation process
-install_deps
-if [ $? -eq "0" ]; then
-   get_python_src
-   build_python
-   if [ -f ${PYTHON_BIN_PATH} ]; then
-      sudo ln -s -f ${PYTHON_BIN_PATH} /usr/local/bin/python${PYTHON_VERSION}
-      sudo ln -s -f ${PYTHON_BIN_PATH} /usr/local/bin/python${PYTHON_VERSION_SHORT}
-      echo "==========================================================="
-      echo "Create symblink /usr/local/bin/python${PYTHON_VERSION}"
-      echo "==========================================================="
-      echo "*********************** Congrats! *********************************"
-      echo "Your python interpreter ${PYTHON_VERSION} is installed successfully"
-      echo "*******************************************************************"
-   else
-      echo "${PYTHON_BIN_PATH} doesn't exist."
-   fi
-   clean_build_artifacts
-   echo 
-   echo
-else
-   echo "Failed to install dependencies, please re-run script to install."
-   exit 1
-fi
 
-if [ "${PY_VER_PRE}" -ne 3 ]; then
-    ./pip_installer.sh ${PYTHON_VERSION} ${INSTALL_DIR_PREFIX}
-fi
+function install_pip() {
+    if [ "${PYTHON_VERSION_MAJOR}" -ne "3" ]; then
+        ./pip_installer.sh ${PYTHON_VERSION} ${INSTALL_DIR_PREFIX}
+    fi
+}
+
+
+function main() {
+    check_parameters
+    install_build_deps
+    prepare_environment
+    get_python_source_pkg
+    build_install_python
+    post_install
+    clean_build_artifacts
+}
+
+
+main
